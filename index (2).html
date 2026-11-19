@@ -1,0 +1,1476 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>soelypun — credit & reviews</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Cute Rounded Google Fonts matching the reference aesthetic -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;600;700;800&family=Quicksand:wght@500;600;700&display=swap" rel="stylesheet" />
+
+  <style>
+    :root {
+      --bg-color: #fdfaf9;
+      --card-bg: #fffcfc;
+      --subcard-bg: #ffffff;
+      --border-color: #efe8e6;
+      --text-primary: #5c5350;
+      --text-secondary: #8e8480;
+      --btn-bg: #d7d2d0;
+      --btn-text: #564d4a;
+      --star-active: #c8c1be;
+      --star-inactive: #ebe6e4;
+      --font-main: 'Quicksand', 'Nunito', sans-serif;
+      --font-display: 'Fredoka', 'Quicksand', sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      margin: 0;
+      background-color: var(--bg-color);
+      color: var(--text-primary);
+      font-family: var(--font-main);
+      overflow-x: hidden;
+      min-height: 100vh;
+      transition: background-color 0.3s ease, color 0.3s ease;
+    }
+
+    .font-display {
+      font-family: var(--font-display);
+    }
+
+    /* Soft pastel cards matching the reference */
+    .pastel-card {
+      background-color: var(--card-bg);
+      border: 1.5px solid var(--border-color);
+      border-radius: 26px;
+      box-shadow: 0 4px 20px rgba(185, 168, 162, 0.07);
+      transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.3s ease, border-color 0.3s ease;
+    }
+
+    .pastel-subcard {
+      background-color: var(--subcard-bg);
+      border: 1.5px solid var(--border-color);
+      border-radius: 20px;
+      box-shadow: 0 2px 10px rgba(185, 168, 162, 0.04);
+      transition: all 0.2s ease;
+    }
+
+    .pastel-input {
+      background-color: var(--subcard-bg);
+      border: 1.5px solid var(--border-color);
+      border-radius: 16px;
+      color: var(--text-primary);
+      font-family: var(--font-main);
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .pastel-input:focus {
+      outline: none;
+      border-color: #cfc6c3;
+      box-shadow: 0 0 0 3px rgba(215, 210, 208, 0.25);
+    }
+
+    .pastel-input::placeholder {
+      color: #b8afac;
+    }
+
+    .pastel-btn {
+      background-color: var(--btn-bg);
+      color: var(--btn-text);
+      font-weight: 700;
+      border-radius: 9999px;
+      transition: transform 0.15s ease, filter 0.2s ease, background-color 0.2s ease;
+    }
+
+    .pastel-btn:hover {
+      filter: brightness(0.96);
+    }
+
+    .pastel-btn:active {
+      transform: scale(0.98);
+    }
+
+    /* Banner subtle dotted & starry pattern like screenshot 1 */
+    .banner-pattern {
+      background-color: #faf7f6;
+      background-image: radial-gradient(#e7dedb 1.2px, transparent 1.2px);
+      background-size: 16px 16px;
+    }
+
+    /* Floating hand-drawn outline stars & hearts background */
+    #doodle-canvas {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      overflow: hidden;
+    }
+
+    .floating-doodle {
+      position: absolute;
+      opacity: 0.42;
+      animation: floatGentle var(--dur, 18s) ease-in-out infinite alternate;
+    }
+
+    @keyframes floatGentle {
+      0% {
+        transform: translate(0px, 0px) rotate(var(--rot-start, -8deg)) scale(1);
+      }
+      50% {
+        transform: translate(var(--dx, 10px), var(--dy, -14px)) rotate(var(--rot-mid, 6deg)) scale(1.04);
+      }
+      100% {
+        transform: translate(calc(var(--dx, 10px) * -0.6), calc(var(--dy, -14px) * 0.7)) rotate(var(--rot-end, 12deg)) scale(0.98);
+      }
+    }
+
+    /* Admin editable highlight mode */
+    body.admin-active .editable-target {
+      outline: 1.5px dashed #c8b8b3;
+      outline-offset: 3px;
+      border-radius: 10px;
+      cursor: pointer;
+      position: relative;
+    }
+
+    body.admin-active .editable-target:hover {
+      outline-color: #8e7b75;
+      background-color: rgba(235, 226, 223, 0.28);
+    }
+
+    /* Custom scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #e2dad7;
+      border-radius: 999px;
+    }
+  </style>
+</head>
+<body class="antialiased selection:bg-[#e8e0dd] selection:text-[#5c5350]">
+
+  <!-- Floating Hand-drawn Doodle Stars & Hearts Layer -->
+  <div id="doodle-canvas" aria-hidden="true"></div>
+
+  <!-- Toast Notification Banner -->
+  <div id="toast-box" class="fixed top-20 left-1/2 -translate-x-1/2 z-50 pointer-events-none opacity-0 transition-all duration-300 transform -translate-y-2">
+    <div id="toast-msg" class="px-5 py-2.5 rounded-full text-xs font-bold shadow-md border border-[#e8e0dd] bg-[#fffcfc] text-[#5c5350]">
+      Saved!
+    </div>
+  </div>
+
+  <!-- Admin Top Banner (Visible only when logged in as Admin) -->
+  <div id="admin-topbar" class="hidden sticky top-0 z-40 bg-[#5c5350] text-[#fdfaf9] px-4 py-2 text-xs shadow-md">
+    <div class="max-w-[460px] mx-auto flex items-center justify-between gap-2">
+      <div class="flex items-center gap-2 font-semibold">
+        <span class="inline-block w-2 h-2 rounded-full bg-emerald-300 animate-pulse"></span>
+        <span>Admin Edit Mode</span>
+      </div>
+      <div class="flex items-center gap-2">
+        <button onclick="openAdminDrawer()" class="px-3 py-1 rounded-full bg-[#fdfaf9] text-[#5c5350] font-bold hover:opacity-90 transition">
+          Customize All
+        </button>
+        <button onclick="logoutAdmin()" class="px-2.5 py-1 rounded-full bg-white/15 text-white hover:bg-white/25 transition">
+          Exit
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Centered Mobile-First Container -->
+  <main class="relative z-10 max-w-[450px] mx-auto px-4 pt-4 pb-28 space-y-4">
+
+    <!-- 1. Sticky Top Header Pill -->
+    <header class="sticky top-3 z-30 pastel-card px-5 py-3 flex items-center justify-between backdrop-blur-md bg-[#fffcfc]/95">
+      <button onclick="window.scrollTo({top: 0, behavior: 'smooth'})" class="text-left focus:outline-none">
+        <span id="ui-header-name" data-edit="profileName" class="editable-target font-display font-bold text-[19px] tracking-tight text-[#5c5350]">
+          soelypun
+        </span>
+      </button>
+      <button id="ui-header-badge" data-edit="badgeText" onclick="handleBadgeClick()" class="editable-target pastel-btn px-4 py-1 text-[13px] tracking-wide">
+        credit
+      </button>
+    </header>
+
+    <!-- 2. Main Profile Card -->
+    <section class="pastel-card p-3.5 space-y-3">
+      <!-- Banner Area -->
+      <div id="ui-banner-box" data-edit="bannerImage" class="editable-target relative w-full h-40 rounded-[20px] banner-pattern border border-[#f2ecea] overflow-hidden flex items-center justify-center">
+        <img id="ui-banner-img" src="" alt="Profile Banner" class="hidden w-full h-full object-cover" onerror="this.classList.add('hidden')" />
+        <!-- Subtle Center Watermark matching screenshot 1 -->
+        <div id="ui-banner-watermark" class="flex flex-col items-center justify-center text-[#b7aeab] select-none pointer-events-none">
+          <svg class="w-3.5 h-3.5 mb-0.5 opacity-70" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+            <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <span id="ui-watermark-text" class="text-[10px] tracking-wider font-medium opacity-75">soelypun</span>
+        </div>
+        <!-- Faint doodle star accents inside banner -->
+        <svg class="w-4 h-4 text-[#cfc6c3] absolute top-6 left-1/2 -translate-x-1/2 opacity-60 pointer-events-none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+          <path d="M12 2l2.9 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l7.1-1.01L12 2z" stroke-linejoin="round"/>
+        </svg>
+        <svg class="w-3.5 h-3.5 text-[#cfc6c3] absolute bottom-4 left-[42%] opacity-60 pointer-events-none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+          <path d="M12 2l2.9 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l7.1-1.01L12 2z" stroke-linejoin="round"/>
+        </svg>
+      </div>
+
+      <!-- Overlapping Avatar + Display Name Row -->
+      <div class="px-2 -mt-12 relative z-10 flex items-end gap-3.5">
+        <div id="ui-avatar-wrap" data-edit="avatarImage" class="editable-target w-24 h-24 rounded-full p-1 bg-[#fffcfc] shadow-md border border-[#efe8e6] shrink-0 overflow-hidden">
+          <img
+            id="ui-avatar-img"
+            src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=300&q=80"
+            alt="Profile Avatar"
+            class="w-full h-full object-cover rounded-full bg-[#f5efed]"
+            onerror="this.src='https://placehold.co/200x200/f6f0ee/8e8480?text=♡'"
+          />
+        </div>
+        <div class="pb-2 min-w-0">
+          <h1 id="ui-display-name" data-edit="profileName" class="editable-target font-display font-bold text-[22px] leading-tight text-[#5c5350] truncate">
+            soelypun
+          </h1>
+        </div>
+      </div>
+
+      <!-- Two-Column Stats Row (REVIEWS & FOLLOWERS) -->
+      <div class="grid grid-cols-2 pt-2 pb-1 text-center">
+        <div data-edit="stats" class="editable-target py-1">
+          <div id="ui-review-count" class="font-display font-bold text-[17px] text-[#5c5350]">100</div>
+          <div class="text-[10px] font-bold tracking-[0.08em] uppercase text-[#9c928e] mt-0.5">REVIEWS</div>
+        </div>
+        <div data-edit="stats" class="editable-target py-1">
+          <div id="ui-follower-count" class="font-display font-bold text-[17px] text-[#5c5350]">20</div>
+          <div class="text-[10px] font-bold tracking-[0.08em] uppercase text-[#9c928e] mt-0.5">FOLLOWERS</div>
+        </div>
+      </div>
+
+      <!-- Full-Width Follow Button -->
+      <div class="px-1">
+        <button id="btn-follow" onclick="toggleFollow()" class="pastel-btn w-full py-2.5 text-[14px] tracking-wide shadow-xs">
+          Follow
+        </button>
+      </div>
+
+      <!-- Divider & Bio Line -->
+      <div class="pt-1 px-1">
+        <div class="border-t border-[#f2ecea] pt-3 pb-1">
+          <p id="ui-bio-text" data-edit="bioText" class="editable-target text-[13.5px] font-semibold text-[#6d6360]">
+            thank you for credit ♡
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3. Optional Announcement / Status Pill Card (Clean pill like screenshot 1) -->
+    <section id="ui-notice-card" data-edit="noticeText" class="editable-target pastel-card px-5 py-3.5 min-h-[42px] flex items-center justify-center text-center">
+      <p id="ui-notice-text" class="text-[12.5px] font-semibold text-[#8e8480] empty:hidden"></p>
+    </section>
+
+    <!-- 4. "review for me" Submission Card -->
+    <section id="review-form-section" class="pastel-card p-5 space-y-3.5">
+      <h2 id="ui-form-title" data-edit="formTitle" class="editable-target font-display font-bold text-[16px] text-[#5c5350]">
+        review for me
+      </h2>
+
+      <!-- Star Selector -->
+      <div class="space-y-1.5">
+        <label class="block text-[12px] font-semibold text-[#8e8480]">Rate stars:</label>
+        <div id="star-selector" class="flex items-center gap-1.5" role="radiogroup" aria-label="Rate stars">
+          <!-- 5 interactive SVG stars rendered by JS -->
+        </div>
+      </div>
+
+      <!-- Name / Codename Input -->
+      <div>
+        <input
+          id="input-reviewer-name"
+          type="text"
+          maxlength="32"
+          placeholder="Name or codename"
+          class="pastel-input w-full px-4 py-3 text-[13.5px] font-medium"
+        />
+      </div>
+
+      <!-- Review Comment Textarea -->
+      <div>
+        <textarea
+          id="input-reviewer-comment"
+          rows="3"
+          maxlength="280"
+          placeholder="Write your review here..."
+          class="pastel-input w-full px-4 py-3 text-[13.5px] font-medium resize-none"
+        ></textarea>
+      </div>
+
+      <!-- Submit Review Pill Button -->
+      <button onclick="submitNewReview()" class="pastel-btn w-full py-3 text-[14px] tracking-wide">
+        Submit Review
+      </button>
+    </section>
+
+    <!-- 5. Overall Rating Summary Pill Card ("96%") -->
+    <section data-edit="stats" class="editable-target pastel-card py-4 px-5 text-center space-y-0.5">
+      <div class="text-[11.5px] font-semibold text-[#9c928e]">Total Rating</div>
+      <div id="ui-rating-percent" class="font-display font-bold text-[20px] text-[#5c5350]">96%</div>
+    </section>
+
+    <!-- 6. "All Reviews" Feed Card -->
+    <section id="all-reviews-section" class="pastel-card p-4 sm:p-5 space-y-3.5">
+      <div class="flex items-center justify-between px-1">
+        <h2 id="ui-reviews-heading" data-edit="reviewsHeading" class="editable-target font-display font-bold text-[16px] text-[#5c5350]">
+          All Reviews
+        </h2>
+        <button id="btn-admin-add-review" onclick="openAddReviewModal()" class="hidden text-xs font-bold px-3 py-1 rounded-full bg-[#efe8e6] text-[#5c5350] hover:bg-[#e3dad7] transition">
+          + Add Review
+        </button>
+      </div>
+
+      <!-- Reviews List Container -->
+      <div id="reviews-list" class="space-y-3">
+        <!-- Populated dynamically via JS -->
+      </div>
+    </section>
+
+    <!-- 7. Footer -->
+    <footer class="pt-3 pb-4 text-center">
+      <p id="ui-footer-text" data-edit="footerText" class="editable-target text-[11.5px] font-semibold text-[#9c928e]">
+        © 2026 soelypun. All rights reserved.
+      </p>
+    </footer>
+
+  </main>
+
+  <!-- Floating Bottom-Left Music Button (Matching screenshot 2 & 3) -->
+  <button
+    id="btn-music-toggle"
+    onclick="toggleMusic()"
+    title="Toggle Cozy Background Music"
+    aria-label="Toggle Background Music"
+    class="fixed bottom-5 left-5 z-30 w-12 h-12 rounded-full pastel-card flex items-center justify-center text-[#5c5350] shadow-md hover:scale-105 active:scale-95 transition"
+  >
+    <!-- Music Note / Muted Icon toggled by JS -->
+    <svg id="icon-music-off" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M9 18V5l12-2v13"/>
+      <circle cx="6" cy="18" r="3"/>
+      <circle cx="18" cy="16" r="3"/>
+      <line x1="2" y1="2" x2="22" y2="22" class="opacity-70"/>
+    </svg>
+    <svg id="icon-music-on" class="hidden w-5 h-5 animate-pulse" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M9 18V5l12-2v13"/>
+      <circle cx="6" cy="18" r="3"/>
+      <circle cx="18" cy="16" r="3"/>
+    </svg>
+  </button>
+
+  <!-- Floating Bottom-Right Profile / Admin Pill Button (Matching screenshot 1, 2, 3) -->
+  <button
+    onclick="handleAdminPillClick()"
+    class="fixed bottom-5 right-5 z-30 pastel-card px-4 py-2.5 rounded-full flex items-center gap-2 shadow-md hover:scale-105 active:scale-95 transition"
+  >
+    <span class="w-6 h-6 rounded-full border border-[#8e8480] flex items-center justify-center text-[#5c5350]">
+      <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+        <circle cx="12" cy="7" r="4"/>
+      </svg>
+    </span>
+    <span id="ui-floating-name" class="font-display font-bold text-[13.5px] text-[#5c5350]">soelypun</span>
+  </button>
+
+  <!-- Hidden Audio Element for Custom MP3 URL -->
+  <audio id="bg-custom-audio" loop preload="none"></audio>
+
+  <!-- ========================================================= -->
+  <!-- MODAL 1: ADMIN PASSWORD LOGIN MODAL                       -->
+  <!-- ========================================================= -->
+  <div id="modal-login" class="hidden fixed inset-0 z-50 bg-[#5c5350]/30 backdrop-blur-xs flex items-center justify-center p-4">
+    <div class="pastel-card w-full max-w-[360px] p-6 space-y-4 shadow-xl animate-[fadeIn_0.2s_ease]">
+      <div class="flex items-center justify-between">
+        <h3 class="font-display font-bold text-lg text-[#5c5350]">Owner Edit Access</h3>
+        <button onclick="closeLoginModal()" class="w-8 h-8 rounded-full hover:bg-[#f3ecea] flex items-center justify-center text-[#8e8480]">✕</button>
+      </div>
+      <p class="text-xs text-[#8e8480] leading-relaxed">
+        Enter your admin password to edit profile info, images, colors, music, and manage reviews.
+        <span class="block mt-1 text-[11px] text-[#a59b97]">(Default password: <strong class="text-[#5c5350]">1234</strong>)</span>
+      </p>
+      <input
+        id="login-password-input"
+        type="password"
+        placeholder="Enter password..."
+        onkeydown="if(event.key==='Enter') verifyAdminPassword()"
+        class="pastel-input w-full px-4 py-3 text-sm"
+      />
+      <p id="login-error-msg" class="hidden text-xs font-semibold text-rose-500">Incorrect password. Please try again.</p>
+      <div class="flex gap-2 pt-1">
+        <button onclick="closeLoginModal()" class="w-1/3 py-2.5 rounded-full border border-[#e5dcd9] text-xs font-bold text-[#8e8480] hover:bg-[#f8f4f3]">
+          Cancel
+        </button>
+        <button onclick="verifyAdminPassword()" class="pastel-btn w-2/3 py-2.5 text-xs">
+          Unlock Editor
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================= -->
+  <!-- MODAL 2: FULL ADMIN CUSTOMIZATION DRAWER                  -->
+  <!-- ========================================================= -->
+  <div id="modal-admin-drawer" class="hidden fixed inset-0 z-50 bg-[#5c5350]/35 backdrop-blur-xs flex items-end sm:items-center justify-center sm:p-4">
+    <div class="pastel-card w-full max-w-[480px] max-h-[88vh] flex flex-col rounded-b-none sm:rounded-[28px] shadow-2xl overflow-hidden">
+      <!-- Drawer Header -->
+      <div class="px-5 py-4 border-b border-[#efe8e6] flex items-center justify-between bg-[#fffcfc]">
+        <div>
+          <h3 class="font-display font-bold text-lg text-[#5c5350]">Customize Page</h3>
+          <p class="text-[11px] text-[#8e8480]">All changes save automatically to your browser</p>
+        </div>
+        <button onclick="closeAdminDrawer()" class="w-8 h-8 rounded-full bg-[#f5efed] text-[#5c5350] font-bold hover:bg-[#ebe2df]">✕</button>
+      </div>
+
+      <!-- Tabs Navigation -->
+      <div class="flex border-b border-[#efe8e6] bg-[#faf7f6] px-3 pt-2 gap-1 text-xs font-bold overflow-x-auto">
+        <button onclick="switchAdminTab('profile')" data-tab="profile" class="admin-tab-btn px-3.5 py-2 rounded-t-xl bg-[#fffcfc] text-[#5c5350] border-t border-x border-[#efe8e6]">Profile & Text</button>
+        <button onclick="switchAdminTab('media')" data-tab="media" class="admin-tab-btn px-3.5 py-2 rounded-t-xl text-[#8e8480]">Images & Music</button>
+        <button onclick="switchAdminTab('theme')" data-tab="theme" class="admin-tab-btn px-3.5 py-2 rounded-t-xl text-[#8e8480]">Theme & Font</button>
+        <button onclick="switchAdminTab('security')" data-tab="security" class="admin-tab-btn px-3.5 py-2 rounded-t-xl text-[#8e8480]">Password & Backup</button>
+      </div>
+
+      <!-- Drawer Scrollable Body -->
+      <div class="p-5 overflow-y-auto space-y-4 text-xs flex-1 bg-[#fffcfc]">
+
+        <!-- TAB 1: PROFILE & TEXT -->
+        <div id="tab-profile" class="admin-tab-pane space-y-3.5">
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block font-bold mb-1 text-[#6d6360]">Display Name</label>
+              <input id="edit-profileName" type="text" class="pastel-input w-full px-3 py-2" oninput="liveUpdateField('profileName', this.value)" />
+            </div>
+            <div>
+              <label class="block font-bold mb-1 text-[#6d6360]">Top Pill Badge</label>
+              <input id="edit-badgeText" type="text" class="pastel-input w-full px-3 py-2" oninput="liveUpdateField('badgeText', this.value)" />
+            </div>
+          </div>
+
+          <div>
+            <label class="block font-bold mb-1 text-[#6d6360]">Bio / Greeting Line</label>
+            <input id="edit-bioText" type="text" class="pastel-input w-full px-3 py-2" oninput="liveUpdateField('bioText', this.value)" />
+          </div>
+
+          <div>
+            <label class="block font-bold mb-1 text-[#6d6360]">Announcement Pill Text (leave blank for clean pill)</label>
+            <input id="edit-noticeText" type="text" placeholder="e.g., Open for commissions ♡" class="pastel-input w-full px-3 py-2" oninput="liveUpdateField('noticeText', this.value)" />
+          </div>
+
+          <div class="grid grid-cols-3 gap-2.5 pt-1">
+            <div>
+              <label class="block font-bold mb-1 text-[#6d6360]">Followers</label>
+              <input id="edit-followers" type="number" class="pastel-input w-full px-3 py-2" oninput="liveUpdateStats()" />
+            </div>
+            <div>
+              <label class="block font-bold mb-1 text-[#6d6360]">Reviews Count</label>
+              <input id="edit-reviewCountOverride" type="text" placeholder="Auto" class="pastel-input w-full px-3 py-2" oninput="liveUpdateStats()" />
+            </div>
+            <div>
+              <label class="block font-bold mb-1 text-[#6d6360]">Rating %</label>
+              <input id="edit-ratingPercentOverride" type="text" placeholder="Auto" class="pastel-input w-full px-3 py-2" oninput="liveUpdateStats()" />
+            </div>
+          </div>
+          <p class="text-[11px] text-[#9c928e]">Tip: Leave Reviews Count or Rating % blank to auto-calculate from your reviews list, or type custom numbers (e.g., 100 and 96%).</p>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block font-bold mb-1 text-[#6d6360]">Review Box Title</label>
+              <input id="edit-formTitle" type="text" class="pastel-input w-full px-3 py-2" oninput="liveUpdateField('formTitle', this.value)" />
+            </div>
+            <div>
+              <label class="block font-bold mb-1 text-[#6d6360]">Reviews List Title</label>
+              <input id="edit-reviewsHeading" type="text" class="pastel-input w-full px-3 py-2" oninput="liveUpdateField('reviewsHeading', this.value)" />
+            </div>
+          </div>
+
+          <div>
+            <label class="block font-bold mb-1 text-[#6d6360]">Footer Copyright Text</label>
+            <input id="edit-footerText" type="text" class="pastel-input w-full px-3 py-2" oninput="liveUpdateField('footerText', this.value)" />
+          </div>
+        </div>
+
+        <!-- TAB 2: IMAGES & MUSIC -->
+        <div id="tab-media" class="admin-tab-pane hidden space-y-4">
+          <!-- Avatar Image -->
+          <div class="p-3.5 rounded-2xl bg-[#faf7f6] border border-[#efe8e6] space-y-2">
+            <label class="block font-bold text-[#5c5350]">Profile Avatar Photo</label>
+            <input id="edit-avatarUrl" type="text" placeholder="Paste image URL (https://...)" class="pastel-input w-full px-3 py-2" oninput="liveUpdateImage('avatarImage', this.value)" />
+            <div class="flex items-center justify-between pt-1">
+              <label class="cursor-pointer px-3 py-1.5 rounded-full bg-[#e8e0dd] text-[#5c5350] font-bold hover:opacity-90">
+                Upload from Device
+                <input type="file" accept="image/*" class="hidden" onchange="handleImageUpload(event, 'avatarImage')" />
+              </label>
+              <button onclick="liveUpdateImage('avatarImage', 'https://placehold.co/200x200/f6f0ee/8e8480?text=♡')" class="text-[#8e8480] underline">Use Placeholder</button>
+            </div>
+          </div>
+
+          <!-- Banner Cover Image -->
+          <div class="p-3.5 rounded-2xl bg-[#faf7f6] border border-[#efe8e6] space-y-2">
+            <label class="block font-bold text-[#5c5350]">Banner Cover Image (optional)</label>
+            <input id="edit-bannerUrl" type="text" placeholder="Paste banner URL or leave empty for starry pattern" class="pastel-input w-full px-3 py-2" oninput="liveUpdateImage('bannerImage', this.value)" />
+            <div class="flex items-center justify-between pt-1">
+              <label class="cursor-pointer px-3 py-1.5 rounded-full bg-[#e8e0dd] text-[#5c5350] font-bold hover:opacity-90">
+                Upload Banner Photo
+                <input type="file" accept="image/*" class="hidden" onchange="handleImageUpload(event, 'bannerImage')" />
+              </label>
+              <button onclick="liveUpdateImage('bannerImage', '')" class="text-[#8e8480] underline">Reset to Pattern</button>
+            </div>
+          </div>
+
+          <!-- Background Music -->
+          <div class="p-3.5 rounded-2xl bg-[#faf7f6] border border-[#efe8e6] space-y-2">
+            <label class="block font-bold text-[#5c5350]">Background Music (MP3 URL)</label>
+            <input id="edit-musicUrl" type="text" placeholder="Leave empty for built-in soft music box melody" class="pastel-input w-full px-3 py-2" oninput="liveUpdateField('musicUrl', this.value)" />
+            <p class="text-[11px] text-[#8e8480]">When empty, clicking the bottom-left music button plays a gentle synthesized pastel music-box lullaby.</p>
+          </div>
+        </div>
+
+        <!-- TAB 3: THEME & FONT -->
+        <div id="tab-theme" class="admin-tab-pane hidden space-y-4">
+          <div>
+            <label class="block font-bold mb-1.5 text-[#5c5350]">Rounded English Font Style</label>
+            <select id="edit-fontFamily" class="pastel-input w-full px-3 py-2.5 font-semibold" onchange="liveUpdateTheme()">
+              <option value="quicksand">Quicksand + Fredoka (Soft Pastel Rounded — Default)</option>
+              <option value="fredoka">Fredoka (Extra Bubbly & Cute)</option>
+              <option value="nunito">Nunito (Clean & Gentle Rounded)</option>
+            </select>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div class="p-3 rounded-2xl bg-[#faf7f6] border border-[#efe8e6]">
+              <label class="block font-bold mb-1 text-[#6d6360]">Page Background</label>
+              <div class="flex items-center gap-2">
+                <input id="edit-bgColor" type="color" class="w-8 h-8 rounded-lg cursor-pointer border-0" oninput="liveUpdateTheme()" />
+                <span id="label-bgColor" class="font-mono text-[11px] text-[#8e8480]">#fdfaf9</span>
+              </div>
+            </div>
+            <div class="p-3 rounded-2xl bg-[#faf7f6] border border-[#efe8e6]">
+              <label class="block font-bold mb-1 text-[#6d6360]">Card Surface</label>
+              <div class="flex items-center gap-2">
+                <input id="edit-cardBg" type="color" class="w-8 h-8 rounded-lg cursor-pointer border-0" oninput="liveUpdateTheme()" />
+                <span id="label-cardBg" class="font-mono text-[11px] text-[#8e8480]">#fffcfc</span>
+              </div>
+            </div>
+            <div class="p-3 rounded-2xl bg-[#faf7f6] border border-[#efe8e6]">
+              <label class="block font-bold mb-1 text-[#6d6360]">Buttons & Pill Accent</label>
+              <div class="flex items-center gap-2">
+                <input id="edit-btnBg" type="color" class="w-8 h-8 rounded-lg cursor-pointer border-0" oninput="liveUpdateTheme()" />
+                <span id="label-btnBg" class="font-mono text-[11px] text-[#8e8480]">#d7d2d0</span>
+              </div>
+            </div>
+            <div class="p-3 rounded-2xl bg-[#faf7f6] border border-[#efe8e6]">
+              <label class="block font-bold mb-1 text-[#6d6360]">Primary Text Color</label>
+              <div class="flex items-center gap-2">
+                <input id="edit-textPrimary" type="color" class="w-8 h-8 rounded-lg cursor-pointer border-0" oninput="liveUpdateTheme()" />
+                <span id="label-textPrimary" class="font-mono text-[11px] text-[#8e8480]">#5c5350</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Aesthetic Pastel Presets -->
+          <div>
+            <label class="block font-bold mb-1.5 text-[#5c5350]">Quick Pastel Presets</label>
+            <div class="grid grid-cols-3 gap-2">
+              <button onclick="applyPreset('milk')" class="p-2 rounded-xl border border-[#efe8e6] bg-[#fdfaf9] text-[#5c5350] font-bold hover:scale-102 transition">
+                Milk Cream
+              </button>
+              <button onclick="applyPreset('blush')" class="p-2 rounded-xl border border-[#f3dfe3] bg-[#fdf6f7] text-[#695256] font-bold hover:scale-102 transition">
+                Strawberry Milk
+              </button>
+              <button onclick="applyPreset('matcha')" class="p-2 rounded-xl border border-[#e2ebe2] bg-[#f7faf7] text-[#4e5c50] font-bold hover:scale-102 transition">
+                Oat Matcha
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB 4: PASSWORD & BACKUP -->
+        <div id="tab-security" class="admin-tab-pane hidden space-y-4">
+          <div class="p-3.5 rounded-2xl bg-[#faf7f6] border border-[#efe8e6] space-y-2.5">
+            <label class="block font-bold text-[#5c5350]">Change Admin Password</label>
+            <input id="edit-new-password" type="password" placeholder="New password (min 4 chars)" class="pastel-input w-full px-3 py-2" />
+            <button onclick="changeAdminPassword()" class="pastel-btn px-4 py-2 text-xs">Update Password</button>
+          </div>
+
+          <div class="p-3.5 rounded-2xl bg-[#faf7f6] border border-[#efe8e6] space-y-2.5">
+            <label class="block font-bold text-[#5c5350]">Backup & Restore Data</label>
+            <p class="text-[11px] text-[#8e8480]">Export your profile & reviews as a JSON file so you can restore it on any device.</p>
+            <div class="flex flex-wrap gap-2">
+              <button onclick="exportConfig()" class="px-3.5 py-2 rounded-full bg-[#e8e0dd] text-[#5c5350] font-bold hover:opacity-90">
+                Export JSON
+              </button>
+              <label class="cursor-pointer px-3.5 py-2 rounded-full border border-[#dfd6d3] text-[#5c5350] font-bold hover:bg-[#f3ecea]">
+                Import JSON
+                <input type="file" accept=".json" class="hidden" onchange="importConfig(event)" />
+              </label>
+            </div>
+          </div>
+
+          <div class="pt-2 border-t border-[#efe8e6] flex items-center justify-between">
+            <span class="text-[#8e8480]">Reset everything to original template:</span>
+            <button onclick="confirmResetAll()" class="px-3 py-1.5 rounded-full bg-rose-100 text-rose-700 font-bold hover:bg-rose-200 transition">
+              Reset Default
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Drawer Footer -->
+      <div class="px-5 py-3 border-t border-[#efe8e6] bg-[#faf7f6] flex justify-end">
+        <button onclick="closeAdminDrawer()" class="pastel-btn px-6 py-2 text-xs">Done</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================= -->
+  <!-- MODAL 3: ADD / EDIT REVIEW MODAL (ADMIN)                  -->
+  <!-- ========================================================= -->
+  <div id="modal-review-editor" class="hidden fixed inset-0 z-50 bg-[#5c5350]/35 backdrop-blur-xs flex items-center justify-center p-4">
+    <div class="pastel-card w-full max-w-[380px] p-5 space-y-3.5 shadow-xl">
+      <div class="flex items-center justify-between">
+        <h3 id="review-modal-title" class="font-display font-bold text-base text-[#5c5350]">Edit Review</h3>
+        <button onclick="closeReviewModal()" class="w-7 h-7 rounded-full hover:bg-[#f3ecea] text-[#8e8480]">✕</button>
+      </div>
+      <input type="hidden" id="edit-review-id" />
+      <div>
+        <label class="block text-xs font-bold mb-1 text-[#6d6360]">Reviewer Name</label>
+        <input id="edit-rev-name" type="text" class="pastel-input w-full px-3 py-2 text-xs" />
+      </div>
+      <div class="grid grid-cols-2 gap-2.5">
+        <div>
+          <label class="block text-xs font-bold mb-1 text-[#6d6360]">Stars (1–5)</label>
+          <select id="edit-rev-stars" class="pastel-input w-full px-3 py-2 text-xs">
+            <option value="5">5 Stars ★★★★★</option>
+            <option value="4">4 Stars ★★★★☆</option>
+            <option value="3">3 Stars ★★★☆☆</option>
+            <option value="2">2 Stars ★★☆☆☆</option>
+            <option value="1">1 Star ★☆☆☆☆</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-xs font-bold mb-1 text-[#6d6360]">Date (DD/MM/YYYY)</label>
+          <input id="edit-rev-date" type="text" placeholder="17/11/2026" class="pastel-input w-full px-3 py-2 text-xs" />
+        </div>
+      </div>
+      <div>
+        <label class="block text-xs font-bold mb-1 text-[#6d6360]">Review Message</label>
+        <textarea id="edit-rev-text" rows="3" class="pastel-input w-full px-3 py-2 text-xs resize-none"></textarea>
+      </div>
+      <div class="flex justify-end gap-2 pt-1">
+        <button onclick="closeReviewModal()" class="px-4 py-2 rounded-full border border-[#e5dcd9] text-xs font-bold text-[#8e8480]">Cancel</button>
+        <button onclick="saveReviewModal()" class="pastel-btn px-5 py-2 text-xs">Save Review</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================= -->
+  <!-- MODAL 4: CUSTOM CONFIRMATION DIALOG (NO NATIVE CONFIRM)   -->
+  <!-- ========================================================= -->
+  <div id="modal-confirm" class="hidden fixed inset-0 z-50 bg-[#5c5350]/35 backdrop-blur-xs flex items-center justify-center p-4">
+    <div class="pastel-card w-full max-w-[340px] p-5 space-y-4 text-center shadow-xl">
+      <h4 id="confirm-title" class="font-display font-bold text-base text-[#5c5350]">Are you sure?</h4>
+      <p id="confirm-desc" class="text-xs text-[#8e8480]">This action cannot be undone.</p>
+      <div class="flex justify-center gap-2.5">
+        <button onclick="closeConfirmDialog()" class="px-4 py-2 rounded-full border border-[#e5dcd9] text-xs font-bold text-[#8e8480]">Cancel</button>
+        <button id="confirm-ok-btn" class="px-5 py-2 rounded-full bg-rose-200 text-rose-900 text-xs font-bold hover:bg-rose-300">Confirm</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /*************************************************************************
+     * DEFAULT DATA & STATE MANAGEMENT (LOCALSTORAGE PERSISTENCE)
+     *************************************************************************/
+    const STORAGE_KEY = 'soelypun_pastel_profile_v1';
+    const FOLLOW_STATE_KEY = 'soelypun_user_followed_v1';
+
+    const DEFAULT_STATE = {
+      password: '1234',
+      profileName: 'soelypun',
+      badgeText: 'credit',
+      bioText: 'thank you for credit ♡',
+      noticeText: '',
+      formTitle: 'review for me',
+      reviewsHeading: 'All Reviews',
+      footerText: '© 2026 soelypun. All rights reserved.',
+      avatarImage: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=300&q=80',
+      bannerImage: '',
+      musicUrl: '',
+      followers: 20,
+      reviewCountOverride: '100',
+      ratingPercentOverride: '96%',
+      theme: {
+        fontFamily: 'quicksand',
+        bgColor: '#fdfaf9',
+        cardBg: '#fffcfc',
+        btnBg: '#d7d2d0',
+        textPrimary: '#5c5350'
+      },
+      reviews: [
+        { id: 'r1', name: 's', stars: 5, date: '17/11/2026', text: 'Great service, super fast delivery!' },
+        { id: 'r2', name: 'uta', stars: 4, date: '17/11/2026', text: 'So sweet and friendly, super quick work ♡' },
+        { id: 'r3', name: 'bunny', stars: 5, date: '17/11/2026', text: 'Super cute and 100% trustworthy >.<' },
+        { id: 'r4', name: 'Chuyiie', stars: 5, date: '15/11/2026', text: 'Very kind seller and replies so fast!' },
+        { id: 'r5', name: 'sylveon', stars: 5, date: '15/11/2026', text: 'Ordered many times already, always amazing.' },
+        { id: 'r6', name: 'Visitor', stars: 5, date: '14/10/2026', text: 'Plus one! Super fast and lovely service 🤎' },
+        { id: 'r7', name: 'Miki', stars: 5, date: '13/10/2026', text: 'Such an adorable shop, love it!' },
+        { id: 'r8', name: 'raynz', stars: 5, date: '12/10/2026', text: '+1 vouch! Super sweet and helpful.' }
+      ]
+    };
+
+    let appState = loadState();
+    let isAdminLoggedIn = false;
+    let selectedFormStars = 0;
+    let isFollowed = localStorage.getItem(FOLLOW_STATE_KEY) === 'true';
+
+    function loadState() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return JSON.parse(JSON.stringify(DEFAULT_STATE));
+        const parsed = JSON.parse(raw);
+        return {
+          ...JSON.parse(JSON.stringify(DEFAULT_STATE)),
+          ...parsed,
+          theme: { ...DEFAULT_STATE.theme, ...(parsed.theme || {}) }
+        };
+      } catch (e) {
+        console.error('Failed to load saved state:', e);
+        return JSON.parse(JSON.stringify(DEFAULT_STATE));
+      }
+    }
+
+    function saveState() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));
+      } catch (e) {
+        showToast('Storage full! Try using a smaller image or URL.');
+      }
+    }
+
+    /*************************************************************************
+     * FLOATING DOODLE BACKGROUND (HAND-DRAWN STARS & HEARTS)
+     *************************************************************************/
+    function generateDoodles() {
+      const container = document.getElementById('doodle-canvas');
+      container.innerHTML = '';
+      const count = 24;
+      const starSvg = `<svg viewBox="0 0 24 24" fill="none" stroke="#c7bebc" stroke-width="1.5" stroke-linejoin="round"><path d="M12 2.5l2.8 5.9 6.5.9-4.7 4.5 1.1 6.4L12 17.1l-5.7 3.1 1.1-6.4-4.7-4.5 6.5-.9L12 2.5z"/></svg>`;
+      const heartSvg = `<svg viewBox="0 0 24 24" fill="none" stroke="#c7bebc" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20.5s-7-4.4-8.8-9.2C1.9 7.8 4.4 4.5 7.8 4.5c2 0 3.5 1.1 4.2 2.3.7-1.2 2.2-2.3 4.2-2.3 3.4 0 5.9 3.3 4.6 6.8-1.8 4.8-8.8 9.2-8.8 9.2z"/></svg>`;
+
+      for (let i = 0; i < count; i++) {
+        const el = document.createElement('div');
+        el.className = 'floating-doodle';
+        const isStar = i % 2 === 0;
+        const size = 12 + (i % 4) * 4;
+        el.style.width = `${size}px`;
+        el.style.height = `${size}px`;
+        el.style.left = `${(i * 19 + 7) % 96}%`;
+        el.style.top = `${(i * 23 + 5) % 94}%`;
+        el.style.setProperty('--dur', `${14 + (i % 7) * 2}s`);
+        el.style.setProperty('--dx', `${(i % 2 === 0 ? 1 : -1) * (8 + (i % 6))}px`);
+        el.style.setProperty('--dy', `${(i % 3 === 0 ? -1 : 1) * (10 + (i % 8))}px`);
+        el.style.setProperty('--rot-start', `${-15 + (i % 10) * 3}deg`);
+        el.style.setProperty('--rot-mid', `${10 - (i % 8) * 2}deg`);
+        el.style.setProperty('--rot-end', `${-10 + (i % 6) * 4}deg`);
+        el.innerHTML = isStar ? starSvg : heartSvg;
+        container.appendChild(el);
+      }
+    }
+
+    /*************************************************************************
+     * RENDER UI FROM STATE
+     *************************************************************************/
+    function renderAll() {
+      // Apply theme variables
+      applyThemeToDOM();
+
+      // Texts
+      document.title = `${appState.profileName} — ${appState.badgeText}`;
+      document.getElementById('ui-header-name').textContent = appState.profileName;
+      document.getElementById('ui-display-name').textContent = appState.profileName;
+      document.getElementById('ui-watermark-text').textContent = appState.profileName;
+      document.getElementById('ui-floating-name').textContent = appState.profileName;
+      document.getElementById('ui-header-badge').textContent = appState.badgeText;
+      document.getElementById('ui-bio-text').textContent = appState.bioText;
+      document.getElementById('ui-form-title').textContent = appState.formTitle;
+      document.getElementById('ui-reviews-heading').textContent = appState.reviewsHeading;
+      document.getElementById('ui-footer-text').textContent = appState.footerText;
+
+      // Notice pill
+      const noticeEl = document.getElementById('ui-notice-text');
+      noticeEl.textContent = appState.noticeText || '';
+
+      // Avatar & Banner Images
+      const avatarImg = document.getElementById('ui-avatar-img');
+      avatarImg.src = appState.avatarImage || 'https://placehold.co/200x200/f6f0ee/8e8480?text=♡';
+
+      const bannerImg = document.getElementById('ui-banner-img');
+      const bannerWatermark = document.getElementById('ui-banner-watermark');
+      if (appState.bannerImage && appState.bannerImage.trim() !== '') {
+        bannerImg.src = appState.bannerImage;
+        bannerImg.classList.remove('hidden');
+        bannerWatermark.classList.add('hidden');
+      } else {
+        bannerImg.classList.add('hidden');
+        bannerWatermark.classList.remove('hidden');
+      }
+
+      // Stats calculation
+      const totalReviews = appState.reviews.length;
+      const avgStars = totalReviews > 0
+        ? appState.reviews.reduce((sum, r) => sum + Number(r.stars || 5), 0) / totalReviews
+        : 5;
+      const computedPercent = `${Math.round((avgStars / 5) * 100)}%`;
+
+      document.getElementById('ui-review-count').textContent =
+        appState.reviewCountOverride && appState.reviewCountOverride.trim() !== ''
+          ? appState.reviewCountOverride
+          : totalReviews;
+
+      document.getElementById('ui-rating-percent').textContent =
+        appState.ratingPercentOverride && appState.ratingPercentOverride.trim() !== ''
+          ? appState.ratingPercentOverride
+          : computedPercent;
+
+      document.getElementById('ui-follower-count').textContent = appState.followers;
+
+      // Follow button state
+      const followBtn = document.getElementById('btn-follow');
+      if (isFollowed) {
+        followBtn.textContent = 'Following ✓';
+        followBtn.style.opacity = '0.82';
+      } else {
+        followBtn.textContent = 'Follow';
+        followBtn.style.opacity = '1';
+      }
+
+      // Render star selector & review feed
+      renderFormStars();
+      renderReviewsList();
+    }
+
+    function applyThemeToDOM() {
+      const root = document.documentElement;
+      const t = appState.theme;
+      root.style.setProperty('--bg-color', t.bgColor);
+      root.style.setProperty('--card-bg', t.cardBg);
+      root.style.setProperty('--btn-bg', t.btnBg);
+      root.style.setProperty('--text-primary', t.textPrimary);
+
+      if (t.fontFamily === 'fredoka') {
+        root.style.setProperty('--font-main', "'Fredoka', 'Quicksand', sans-serif");
+        root.style.setProperty('--font-display', "'Fredoka', sans-serif");
+      } else if (t.fontFamily === 'nunito') {
+        root.style.setProperty('--font-main', "'Nunito', 'Quicksand', sans-serif");
+        root.style.setProperty('--font-display', "'Nunito', sans-serif");
+      } else {
+        root.style.setProperty('--font-main', "'Quicksand', 'Nunito', sans-serif");
+        root.style.setProperty('--font-display', "'Fredoka', 'Quicksand', sans-serif");
+      }
+    }
+
+    function renderFormStars() {
+      const container = document.getElementById('star-selector');
+      container.innerHTML = '';
+      for (let i = 1; i <= 5; i++) {
+        const active = i <= selectedFormStars;
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.setAttribute('aria-label', `${i} star${i > 1 ? 's' : ''}`);
+        btn.className = 'p-0.5 transition-transform hover:scale-110 active:scale-95 focus:outline-none';
+        btn.onclick = () => {
+          selectedFormStars = i;
+          renderFormStars();
+        };
+        btn.innerHTML = `
+          <svg class="w-7 h-7 transition-colors" viewBox="0 0 24 24" fill="${active ? '#b8aeab' : '#e4dedc'}">
+            <path d="M12 2.4l2.85 5.95 6.55.9-4.75 4.55 1.15 6.45L12 17.15l-5.8 3.1 1.15-6.45-4.75-4.55 6.55-.9L12 2.4z"/>
+          </svg>
+        `;
+        container.appendChild(btn);
+      }
+    }
+
+    function renderReviewsList() {
+      const list = document.getElementById('reviews-list');
+      list.innerHTML = '';
+
+      if (appState.reviews.length === 0) {
+        list.innerHTML = `<p class="text-center text-xs text-[#9c928e] py-6">No reviews yet. Be the first to leave a sweet note ♡</p>`;
+        return;
+      }
+
+      appState.reviews.forEach((rev) => {
+        const card = document.createElement('article');
+        card.className = 'pastel-subcard p-4 space-y-2 relative group';
+
+        // Generate 5 small stars
+        let starsHtml = '';
+        for (let s = 1; s <= 5; s++) {
+          const filled = s <= Number(rev.stars);
+          starsHtml += `
+            <svg class="w-3.5 h-3.5 inline-block" viewBox="0 0 24 24" fill="${filled ? '#c5bcba' : '#eee9e7'}">
+              <path d="M12 2.4l2.85 5.95 6.55.9-4.75 4.55 1.15 6.45L12 17.15l-5.8 3.1 1.15-6.45-4.75-4.55 6.55-.9L12 2.4z"/>
+            </svg>
+          `;
+        }
+
+        const adminControls = isAdminLoggedIn
+          ? `
+            <div class="flex items-center gap-1.5 pt-1 border-t border-[#f4efed] mt-2 justify-end">
+              <button onclick="openEditReviewModal('${rev.id}')" class="px-2.5 py-1 rounded-full bg-[#f3ecea] text-[11px] font-bold text-[#5c5350] hover:bg-[#e5dcd9]">
+                Edit
+              </button>
+              <button onclick="deleteReview('${rev.id}')" class="px-2.5 py-1 rounded-full bg-rose-50 text-[11px] font-bold text-rose-600 hover:bg-rose-100">
+                Delete
+              </button>
+            </div>
+          `
+          : '';
+
+        card.innerHTML = `
+          <div class="flex items-center justify-between gap-2">
+            <div class="flex items-center gap-2 min-w-0">
+              <span class="font-display font-bold text-[14px] text-[#5c5350] truncate">${escapeHtml(rev.name)}</span>
+              <span class="flex items-center gap-0.5 shrink-0">${starsHtml}</span>
+            </div>
+            <span class="text-[11px] font-semibold text-[#a59b97] shrink-0">${escapeHtml(rev.date)}</span>
+          </div>
+          <p class="text-[13px] font-medium text-[#756b68] leading-relaxed break-words">${escapeHtml(rev.text)}</p>
+          ${adminControls}
+        `;
+        list.appendChild(card);
+      });
+    }
+
+    /*************************************************************************
+     * VISITOR INTERACTIONS (FOLLOW, SUBMIT REVIEW, BADGE CLICK)
+     *************************************************************************/
+    function handleBadgeClick() {
+      const target = document.getElementById('all-reviews-section');
+      if (target) target.scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function toggleFollow() {
+      if (!isFollowed) {
+        isFollowed = true;
+        appState.followers = Number(appState.followers || 0) + 1;
+        showToast(`Following ${appState.profileName} ♡`);
+      } else {
+        isFollowed = false;
+        appState.followers = Math.max(0, Number(appState.followers || 1) - 1);
+        showToast('Unfollowed');
+      }
+      localStorage.setItem(FOLLOW_STATE_KEY, String(isFollowed));
+      saveState();
+      renderAll();
+    }
+
+    function submitNewReview() {
+      const nameInput = document.getElementById('input-reviewer-name');
+      const commentInput = document.getElementById('input-reviewer-comment');
+      const name = nameInput.value.trim() || 'Anonymous';
+      const text = commentInput.value.trim();
+
+      if (selectedFormStars === 0) {
+        showToast('Please select a star rating first ☆');
+        return;
+      }
+      if (!text) {
+        showToast('Please write a short review message ♡');
+        commentInput.focus();
+        return;
+      }
+
+      // Format today's date as DD/MM/YYYY
+      const now = new Date();
+      const dd = String(now.getDate()).padStart(2, '0');
+      const mm = String(now.getMonth() + 1).padStart(2, '0');
+      const yyyy = now.getFullYear();
+
+      const newRev = {
+        id: 'rev_' + Date.now(),
+        name,
+        stars: selectedFormStars,
+        date: `${dd}/${mm}/${yyyy}`,
+        text
+      };
+
+      appState.reviews.unshift(newRev);
+
+      // If reviewCountOverride is numeric, increment it cleanly too
+      if (appState.reviewCountOverride && !isNaN(Number(appState.reviewCountOverride))) {
+        appState.reviewCountOverride = String(Number(appState.reviewCountOverride) + 1);
+      }
+
+      saveState();
+      renderAll();
+
+      // Clear inputs
+      nameInput.value = '';
+      commentInput.value = '';
+      selectedFormStars = 0;
+      renderFormStars();
+
+      showToast('Thank you for your review! ♡');
+      document.getElementById('all-reviews-section').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    /*************************************************************************
+     * AMBIENT COZY MUSIC BOX (WEB AUDIO SYNTH + CUSTOM MP3 SUPPORT)
+     *************************************************************************/
+    let audioCtx = null;
+    let musicPlaying = false;
+    let musicTimer = null;
+    let noteIndex = 0;
+
+    // Gentle pastel music-box notes (F major / C major pentatonic lullaby)
+    const LULLABY_NOTES = [
+      523.25, 659.25, 783.99, 659.25,
+      587.33, 698.46, 880.00, 698.46,
+      493.88, 587.33, 783.99, 587.33,
+      523.25, 659.25, 523.25, 0
+    ];
+
+    function playMusicBoxNote(freq) {
+      if (!freq || !audioCtx) return;
+      const now = audioCtx.currentTime;
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(freq, now);
+
+      gain.gain.setValueAtTime(0.0001, now);
+      gain.gain.exponentialRampToValueAtTime(0.035, now + 0.04);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + 1.15);
+
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+
+      osc.start(now);
+      osc.stop(now + 1.2);
+    }
+
+    function toggleMusic() {
+      const customAudio = document.getElementById('bg-custom-audio');
+      const iconOff = document.getElementById('icon-music-off');
+      const iconOn = document.getElementById('icon-music-on');
+
+      if (!musicPlaying) {
+        musicPlaying = true;
+        iconOff.classList.add('hidden');
+        iconOn.classList.remove('hidden');
+
+        if (appState.musicUrl && appState.musicUrl.trim() !== '') {
+          customAudio.src = appState.musicUrl.trim();
+          customAudio.volume = 0.4;
+          customAudio.play().catch(() => {
+            showToast('Could not play custom URL, switching to music box ♪');
+            startSynthLullaby();
+          });
+        } else {
+          startSynthLullaby();
+        }
+        showToast('Cozy music on ♪');
+      } else {
+        musicPlaying = false;
+        iconOn.classList.add('hidden');
+        iconOff.classList.remove('hidden');
+        customAudio.pause();
+        if (musicTimer) {
+          clearInterval(musicTimer);
+          musicTimer = null;
+        }
+        showToast('Music paused');
+      }
+    }
+
+    function startSynthLullaby() {
+      if (!audioCtx) {
+        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+        audioCtx = new AudioContextClass();
+      }
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+      if (musicTimer) clearInterval(musicTimer);
+      playMusicBoxNote(LULLABY_NOTES[noteIndex % LULLABY_NOTES.length]);
+      noteIndex++;
+      musicTimer = setInterval(() => {
+        if (!musicPlaying) return;
+        playMusicBoxNote(LULLABY_NOTES[noteIndex % LULLABY_NOTES.length]);
+        noteIndex++;
+      }, 650);
+    }
+
+    /*************************************************************************
+     * ADMIN AUTHENTICATION & INLINE / DRAWER EDITING
+     *************************************************************************/
+    function handleAdminPillClick() {
+      if (isAdminLoggedIn) {
+        openAdminDrawer();
+      } else {
+        document.getElementById('login-password-input').value = '';
+        document.getElementById('login-error-msg').classList.add('hidden');
+        document.getElementById('modal-login').classList.remove('hidden');
+        setTimeout(() => document.getElementById('login-password-input').focus(), 80);
+      }
+    }
+
+    function closeLoginModal() {
+      document.getElementById('modal-login').classList.add('hidden');
+    }
+
+    function verifyAdminPassword() {
+      const entered = document.getElementById('login-password-input').value;
+      if (entered === appState.password) {
+        isAdminLoggedIn = true;
+        closeLoginModal();
+        document.body.classList.add('admin-active');
+        document.getElementById('admin-topbar').classList.remove('hidden');
+        document.getElementById('btn-admin-add-review').classList.remove('hidden');
+        renderReviewsList();
+        openAdminDrawer();
+        showToast('Unlocked Admin Edit Mode ✨');
+      } else {
+        document.getElementById('login-error-msg').classList.remove('hidden');
+      }
+    }
+
+    function logoutAdmin() {
+      isAdminLoggedIn = false;
+      document.body.classList.remove('admin-active');
+      document.getElementById('admin-topbar').classList.add('hidden');
+      document.getElementById('btn-admin-add-review').classList.add('hidden');
+      closeAdminDrawer();
+      renderReviewsList();
+      showToast('Exited Edit Mode');
+    }
+
+    // Inline click-to-edit shortcut when Admin Mode is active
+    document.addEventListener('click', (e) => {
+      if (!isAdminLoggedIn) return;
+      const target = e.target.closest('.editable-target');
+      if (!target) return;
+      e.preventDefault();
+      e.stopPropagation();
+
+      const editKey = target.getAttribute('data-edit');
+      openAdminDrawer();
+      if (editKey === 'avatarImage' || editKey === 'bannerImage') {
+        switchAdminTab('media');
+      } else {
+        switchAdminTab('profile');
+      }
+    }, true);
+
+    function openAdminDrawer() {
+      populateAdminInputs();
+      document.getElementById('modal-admin-drawer').classList.remove('hidden');
+    }
+
+    function closeAdminDrawer() {
+      document.getElementById('modal-admin-drawer').classList.add('hidden');
+    }
+
+    function switchAdminTab(tabName) {
+      document.querySelectorAll('.admin-tab-pane').forEach((el) => el.classList.add('hidden'));
+      document.getElementById(`tab-${tabName}`).classList.remove('hidden');
+
+      document.querySelectorAll('.admin-tab-btn').forEach((btn) => {
+        if (btn.getAttribute('data-tab') === tabName) {
+          btn.classList.add('bg-[#fffcfc]', 'text-[#5c5350]', 'border-t', 'border-x', 'border-[#efe8e6]');
+          btn.classList.remove('text-[#8e8480]');
+        } else {
+          btn.classList.remove('bg-[#fffcfc]', 'text-[#5c5350]', 'border-t', 'border-x', 'border-[#efe8e6]');
+          btn.classList.add('text-[#8e8480]');
+        }
+      });
+    }
+
+    function populateAdminInputs() {
+      document.getElementById('edit-profileName').value = appState.profileName;
+      document.getElementById('edit-badgeText').value = appState.badgeText;
+      document.getElementById('edit-bioText').value = appState.bioText;
+      document.getElementById('edit-noticeText').value = appState.noticeText || '';
+      document.getElementById('edit-followers').value = appState.followers;
+      document.getElementById('edit-reviewCountOverride').value = appState.reviewCountOverride || '';
+      document.getElementById('edit-ratingPercentOverride').value = appState.ratingPercentOverride || '';
+      document.getElementById('edit-formTitle').value = appState.formTitle;
+      document.getElementById('edit-reviewsHeading').value = appState.reviewsHeading;
+      document.getElementById('edit-footerText').value = appState.footerText;
+
+      document.getElementById('edit-avatarUrl').value = appState.avatarImage || '';
+      document.getElementById('edit-bannerUrl').value = appState.bannerImage || '';
+      document.getElementById('edit-musicUrl').value = appState.musicUrl || '';
+
+      document.getElementById('edit-fontFamily').value = appState.theme.fontFamily;
+      document.getElementById('edit-bgColor').value = appState.theme.bgColor;
+      document.getElementById('edit-cardBg').value = appState.theme.cardBg;
+      document.getElementById('edit-btnBg').value = appState.theme.btnBg;
+      document.getElementById('edit-textPrimary').value = appState.theme.textPrimary;
+
+      document.getElementById('label-bgColor').textContent = appState.theme.bgColor;
+      document.getElementById('label-cardBg').textContent = appState.theme.cardBg;
+      document.getElementById('label-btnBg').textContent = appState.theme.btnBg;
+      document.getElementById('label-textPrimary').textContent = appState.theme.textPrimary;
+    }
+
+    function liveUpdateField(key, val) {
+      appState[key] = val;
+      saveState();
+      renderAll();
+    }
+
+    function liveUpdateStats() {
+      appState.followers = Number(document.getElementById('edit-followers').value || 0);
+      appState.reviewCountOverride = document.getElementById('edit-reviewCountOverride').value;
+      appState.ratingPercentOverride = document.getElementById('edit-ratingPercentOverride').value;
+      saveState();
+      renderAll();
+    }
+
+    function liveUpdateImage(key, url) {
+      appState[key] = url;
+      if (key === 'avatarImage') document.getElementById('edit-avatarUrl').value = url;
+      if (key === 'bannerImage') document.getElementById('edit-bannerUrl').value = url;
+      saveState();
+      renderAll();
+    }
+
+    function handleImageUpload(event, key) {
+      const file = event.target.files && event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        liveUpdateImage(key, e.target.result);
+        showToast('Image updated! ♡');
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function liveUpdateTheme() {
+      appState.theme.fontFamily = document.getElementById('edit-fontFamily').value;
+      appState.theme.bgColor = document.getElementById('edit-bgColor').value;
+      appState.theme.cardBg = document.getElementById('edit-cardBg').value;
+      appState.theme.btnBg = document.getElementById('edit-btnBg').value;
+      appState.theme.textPrimary = document.getElementById('edit-textPrimary').value;
+
+      document.getElementById('label-bgColor').textContent = appState.theme.bgColor;
+      document.getElementById('label-cardBg').textContent = appState.theme.cardBg;
+      document.getElementById('label-btnBg').textContent = appState.theme.btnBg;
+      document.getElementById('label-textPrimary').textContent = appState.theme.textPrimary;
+
+      saveState();
+      renderAll();
+    }
+
+    function applyPreset(name) {
+      if (name === 'milk') {
+        appState.theme = { ...appState.theme, bgColor: '#fdfaf9', cardBg: '#fffcfc', btnBg: '#d7d2d0', textPrimary: '#5c5350' };
+      } else if (name === 'blush') {
+        appState.theme = { ...appState.theme, bgColor: '#fdf6f7', cardBg: '#fffafb', btnBg: '#e8cfd4', textPrimary: '#634c50' };
+      } else if (name === 'matcha') {
+        appState.theme = { ...appState.theme, bgColor: '#f7faf7', cardBg: '#fcfffc', btnBg: '#cfdcd1', textPrimary: '#4b594d' };
+      }
+      saveState();
+      populateAdminInputs();
+      renderAll();
+      showToast('Theme preset applied!');
+    }
+
+    function changeAdminPassword() {
+      const newPass = document.getElementById('edit-new-password').value.trim();
+      if (newPass.length < 4) {
+        showToast('Password must be at least 4 characters.');
+        return;
+      }
+      appState.password = newPass;
+      saveState();
+      document.getElementById('edit-new-password').value = '';
+      showToast('Admin password updated!');
+    }
+
+    /*************************************************************************
+     * ADMIN REVIEW MANAGEMENT (ADD / EDIT / DELETE)
+     *************************************************************************/
+    function openAddReviewModal() {
+      document.getElementById('review-modal-title').textContent = 'Add New Review';
+      document.getElementById('edit-review-id').value = '';
+      document.getElementById('edit-rev-name').value = '';
+      document.getElementById('edit-rev-stars').value = '5';
+      const now = new Date();
+      document.getElementById('edit-rev-date').value =
+        `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()}`;
+      document.getElementById('edit-rev-text').value = '';
+      document.getElementById('modal-review-editor').classList.remove('hidden');
+    }
+
+    function openEditReviewModal(id) {
+      const rev = appState.reviews.find((r) => r.id === id);
+      if (!rev) return;
+      document.getElementById('review-modal-title').textContent = 'Edit Review';
+      document.getElementById('edit-review-id').value = rev.id;
+      document.getElementById('edit-rev-name').value = rev.name;
+      document.getElementById('edit-rev-stars').value = String(rev.stars);
+      document.getElementById('edit-rev-date').value = rev.date;
+      document.getElementById('edit-rev-text').value = rev.text;
+      document.getElementById('modal-review-editor').classList.remove('hidden');
+    }
+
+    function closeReviewModal() {
+      document.getElementById('modal-review-editor').classList.add('hidden');
+    }
+
+    function saveReviewModal() {
+      const id = document.getElementById('edit-review-id').value;
+      const name = document.getElementById('edit-rev-name').value.trim() || 'Anonymous';
+      const stars = Number(document.getElementById('edit-rev-stars').value || 5);
+      const date = document.getElementById('edit-rev-date').value.trim() || '17/11/2026';
+      const text = document.getElementById('edit-rev-text').value.trim();
+
+      if (!text) {
+        showToast('Review message cannot be empty');
+        return;
+      }
+
+      if (id) {
+        const idx = appState.reviews.findIndex((r) => r.id === id);
+        if (idx !== -1) {
+          appState.reviews[idx] = { id, name, stars, date, text };
+        }
+      } else {
+        appState.reviews.unshift({ id: 'rev_' + Date.now(), name, stars, date, text });
+      }
+
+      saveState();
+      renderAll();
+      closeReviewModal();
+      showToast('Review saved!');
+    }
+
+    function deleteReview(id) {
+      openConfirmDialog('Delete this review?', 'This review will be permanently removed from the list.', () => {
+        appState.reviews = appState.reviews.filter((r) => r.id !== id);
+        saveState();
+        renderAll();
+        showToast('Review deleted');
+      });
+    }
+
+    /*************************************************************************
+     * EXPORT / IMPORT / RESET
+     *************************************************************************/
+    function exportConfig() {
+      const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(appState, null, 2));
+      const a = document.createElement('a');
+      a.setAttribute('href', dataStr);
+      a.setAttribute('download', `${appState.profileName || 'soelypun'}_backup.json`);
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      showToast('Backup JSON downloaded!');
+    }
+
+    function importConfig(event) {
+      const file = event.target.files && event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const parsed = JSON.parse(e.target.result);
+          appState = {
+            ...JSON.parse(JSON.stringify(DEFAULT_STATE)),
+            ...parsed,
+            theme: { ...DEFAULT_STATE.theme, ...(parsed.theme || {}) }
+          };
+          saveState();
+          populateAdminInputs();
+          renderAll();
+          showToast('Backup restored successfully!');
+        } catch (err) {
+          showToast('Invalid JSON backup file');
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    function confirmResetAll() {
+      openConfirmDialog('Reset all customizations?', 'This will restore default text, images, colors, and sample reviews.', () => {
+        appState = JSON.parse(JSON.stringify(DEFAULT_STATE));
+        saveState();
+        populateAdminInputs();
+        renderAll();
+        showToast('Reset to default template');
+      });
+    }
+
+    /*************************************************************************
+     * CUSTOM CONFIRM MODAL & TOAST HELPERS
+     *************************************************************************/
+    let confirmCallback = null;
+
+    function openConfirmDialog(title, desc, onConfirm) {
+      document.getElementById('confirm-title').textContent = title;
+      document.getElementById('confirm-desc').textContent = desc;
+      confirmCallback = onConfirm;
+      document.getElementById('modal-confirm').classList.remove('hidden');
+    }
+
+    function closeConfirmDialog() {
+      document.getElementById('modal-confirm').classList.add('hidden');
+      confirmCallback = null;
+    }
+
+    document.getElementById('confirm-ok-btn').addEventListener('click', () => {
+      if (typeof confirmCallback === 'function') confirmCallback();
+      closeConfirmDialog();
+    });
+
+    let toastTimeout = null;
+    function showToast(msg) {
+      const box = document.getElementById('toast-box');
+      const label = document.getElementById('toast-msg');
+      label.textContent = msg;
+      box.classList.remove('opacity-0', '-translate-y-2');
+      box.classList.add('opacity-100', 'translate-y-0');
+      if (toastTimeout) clearTimeout(toastTimeout);
+      toastTimeout = setTimeout(() => {
+        box.classList.remove('opacity-100', 'translate-y-0');
+        box.classList.add('opacity-0', '-translate-y-2');
+      }, 2400);
+    }
+
+    function escapeHtml(str) {
+      return String(str || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    // Initialize on load
+    window.addEventListener('DOMContentLoaded', () => {
+      generateDoodles();
+      renderAll();
+    });
+  </script>
+</body>
+</html>
